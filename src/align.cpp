@@ -65,7 +65,7 @@ Func align_layer(Func layer, Func prev_alignment, Point prev_min, Point prev_max
  * by T_SIZE_2 in each dimension. align(imgs)(tile_x, tile_y, n) is a point representing the x and y offset
  * for a tile in layer n that most closely matches that tile in the reference (relative to the reference tile's location)
  */
-Func align(const Image<uint16_t> imgs) {
+Func align(const Buffer<uint16_t> imgs) {
 
     Func alignment_3("layer_3_alignment");
     Func alignment("alignment");
@@ -107,8 +107,62 @@ Func align(const Image<uint16_t> imgs) {
 
     // number of tiles in the x and y dimensions
 
-    int num_tx = imgs.width() / T_SIZE_2 - 1;
-    int num_ty = imgs.height() / T_SIZE_2 - 1;
+    Expr num_tx = imgs.width() / T_SIZE_2 - 1;
+    Expr num_ty = imgs.height() / T_SIZE_2 - 1;
+
+    // final alignment offsets for the original mosaic image; tiles outside of the bounds use the nearest alignment offset
+
+    alignment(tx, ty, n) = 2 * P(alignment_0(tx, ty, n));
+
+    Func alignment_repeat = BoundaryConditions::repeat_edge(alignment, 0, num_tx, 0, num_ty);
+    
+    return alignment_repeat;
+}
+
+Func align(ImageParam imgs) {
+
+    Func alignment_3("layer_3_alignment");
+    Func alignment("alignment");
+
+    Var tx, ty, n;
+
+    // mirror input with overlapping edges
+
+    Func imgs_mirror = BoundaryConditions::mirror_interior(imgs, 0, imgs.width(), 0, imgs.height());
+
+    // downsampled layers for alignment
+
+    Func layer_0 = box_down2(imgs_mirror, "layer_0");
+    Func layer_1 = gauss_down4(layer_0, "layer_1");
+    Func layer_2 = gauss_down4(layer_1, "layer_2");
+
+    // min and max search regions
+
+    Point min_search = P(-4, -4);
+    Point max_search = P(3, 3);
+
+    Point min_3 = P(0, 0);
+    Point min_2 = DOWNSAMPLE_RATE * min_3 + min_search;
+    Point min_1 = DOWNSAMPLE_RATE * min_2 + min_search;
+
+    Point max_3 = P(0, 0);
+    Point max_2 = DOWNSAMPLE_RATE * max_3 + max_search;
+    Point max_1 = DOWNSAMPLE_RATE * max_2 + max_search;
+
+    // initial alignment of previous layer is 0, 0
+
+    alignment_3(tx, ty, n) = P(0, 0);
+
+    // hierarchal alignment functions
+
+    Func alignment_2 = align_layer(layer_2, alignment_3, min_3, max_3);
+    Func alignment_1 = align_layer(layer_1, alignment_2, min_2, max_2);
+    Func alignment_0 = align_layer(layer_0, alignment_1, min_1, max_1);
+
+    // number of tiles in the x and y dimensions
+
+    Expr num_tx = imgs.width() / T_SIZE_2 - 1;
+    Expr num_ty = imgs.height() / T_SIZE_2 - 1;
 
     // final alignment offsets for the original mosaic image; tiles outside of the bounds use the nearest alignment offset
 

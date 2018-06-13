@@ -681,39 +681,39 @@ Func finish(Func input, int width, int height, const BlackPoint bp, const WhiteP
 
     // 1. Black-level subtraction and white-level scaling
 
-    Func black_white_level_output = black_white_level(Func(input), bp, wp);
+	Func black_white_level_output = black_white_level(Func(input), bp, wp);
 
-    // 2. White balancing
+	// 2. White balancing
 
-    Func white_balance_output = white_balance(black_white_level_output, width, height, wb);
+	Func white_balance_output = white_balance(black_white_level_output, width, height, wb);
 
-    // 3. Demosaicking
+	// 3. Demosaicking
 
-    Func demosaic_output = demosaic(white_balance_output, width, height);
+	Func demosaic_output = demosaic(white_balance_output, width, height);
 
-    // 4. Chroma denoising
+	// 4. Chroma denoising
 
-    Func chroma_denoised_output = chroma_denoise(demosaic_output, width, height, denoise_passes);
+	Func chroma_denoised_output = chroma_denoise(demosaic_output, width, height, denoise_passes);
 
-    // 5. sRGB color correction
+	// 5. sRGB color correction
 
-    Func srgb_output = srgb(demosaic_output);
+	Func srgb_output = srgb(demosaic_output);
 
-    // 6. Tone mapping
+	// 6. Tone mapping
 
-    Func tone_map_output = tone_map(srgb_output, width, height, c, g);
+	Func tone_map_output = tone_map(srgb_output, width, height, c, g);
 
-    // 7. Gamma correction
+	// 7. Gamma correction
 
-    Func gamma_correct_output = gamma_correct(tone_map_output);
+	Func gamma_correct_output = gamma_correct(tone_map_output);
 
-    // 8. Global contrast increase
+	// 8. Global contrast increase
 
-    Func contrast_output = contrast(gamma_correct_output, contrast_strength, black_level);
+	Func contrast_output = contrast(gamma_correct_output, contrast_strength, black_level);
 
-    // 9. Sharpening
+	// 9. Sharpening
 
-    Func sharpen_output = sharpen(contrast_output, sharpen_strength);
+	Func sharpen_output = sharpen(contrast_output, sharpen_strength);
 
-    return u8bit_interleaved(contrast_output);
+	return u8bit_interleaved(contrast_output);
 }

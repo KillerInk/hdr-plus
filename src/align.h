@@ -1,6 +1,8 @@
 #ifndef HDRPLUS_ALIGN_H_
 #define HDRPLUS_ALIGN_H_
 
+#include <Halide.h>
+
 #define T_SIZE 32           // Size of a tile in the bayer mosaiced image
 #define T_SIZE_2 16         // Half of T_SIZE and the size of a tile throughout the alignment pyramid
 
@@ -9,7 +11,6 @@
 
 #define DOWNSAMPLE_RATE 4   // Rate at which layers of the alignment pyramid are downsampled relative to each other
 
-#include "Halide.h"
 
 /*
  * prev_tile -- Returns an index to the nearest tile in the previous level of the pyramid.
@@ -55,6 +56,7 @@ inline Halide::Expr idx_layer(Halide::Expr t, Halide::Expr i) { return t * T_SIZ
  * by T_SIZE_2 in each dimension. align(imgs)(tile_x, tile_y, n) is a point representing the x and y offset
  * for a tile in layer n that most closely matches that tile in the reference (relative to the reference tile's location)
  */
-Halide::Func align(const Halide::Image<uint16_t> imgs);
+Halide::Func align(const Halide::Buffer<uint16_t> imgs);
+Halide::Func align(Halide::ImageParam imgs);
 
 #endif
