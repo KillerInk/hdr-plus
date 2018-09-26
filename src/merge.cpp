@@ -106,7 +106,7 @@ Func merge_temporal(ImageParam imgs, Func alignment) {
 
     // mirror input with overlapping edges
 
-    Func imgs_mirror = BoundaryConditions::mirror_interior(imgs, 0, imgs.width(), 0, imgs.height());
+    Func imgs_mirror = BoundaryConditions::mirror_interior(imgs, 0, imgs.dim(0).max(), 0, imgs.dim(1).max());
 
     // downsampled layer for computing L1 distances
 
@@ -231,13 +231,27 @@ Func merge(Buffer<uint16_t> imgs, Func alignment) {
     Func merge_temporal_output = merge_temporal(imgs, alignment);
 
     return merge_spatial(merge_temporal_output);
-}/*
+}
+
+/*
  * merge -- fully merges aligned frames in the temporal and spatial
  * dimension to produce one denoised bayer frame.
  */
 Func merge(Halide::ImageParam imgs, Func alignment) {
 
     Func merge_temporal_output = merge_temporal(imgs, alignment);
+
+    return merge_spatial(merge_temporal_output);
+}
+/*
+ * merge -- fully merges aligned frames in the temporal and spatial
+ * dimension to produce one denoised bayer frame.
+ */
+Func merge(Halide::ImageParam imgs, Halide::ImageParam alignment) {
+	Var x, y, c;
+	Func s;
+	s(x, y, c) = alignment(x, y, c);
+    Func merge_temporal_output = merge_temporal(imgs, s);
 
     return merge_spatial(merge_temporal_output);
 }

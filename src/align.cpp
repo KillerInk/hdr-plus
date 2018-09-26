@@ -119,16 +119,18 @@ Func align(const Buffer<uint16_t> imgs) {
     return alignment_repeat;
 }
 
-Func align(ImageParam imgs) {
+
+
+Func aligns(ImageParam imgs) {
 
     Func alignment_3("layer_3_alignment");
     Func alignment("alignment");
 
-    Var tx, ty, n;
+    Var tx, ty, n,x,y,c;
 
     // mirror input with overlapping edges
 
-    Func imgs_mirror = BoundaryConditions::mirror_interior(imgs, 0, imgs.width(), 0, imgs.height());
+    Func imgs_mirror = BoundaryConditions::mirror_interior(imgs, 0, imgs.dim(0).max(), 0, imgs.dim(1).max());
 
     // downsampled layers for alignment
 
@@ -161,14 +163,22 @@ Func align(ImageParam imgs) {
 
     // number of tiles in the x and y dimensions
 
-    Expr num_tx = imgs.width() / T_SIZE_2 - 1;
-    Expr num_ty = imgs.height() / T_SIZE_2 - 1;
+    Expr num_tx = imgs.dim(0).max() / T_SIZE_2 - 1;
+    Expr num_ty = imgs.dim(1).max() / T_SIZE_2 - 1;
 
     // final alignment offsets for the original mosaic image; tiles outside of the bounds use the nearest alignment offset
 
     alignment(tx, ty, n) = 2 * P(alignment_0(tx, ty, n));
 
     Func alignment_repeat = BoundaryConditions::repeat_edge(alignment, 0, num_tx, 0, num_ty);
-    
-    return alignment_repeat;
+	return alignment_repeat;
+}
+
+Func align(ImageParam imgs) {
+	/*Func s = aligns(imgs);
+	Var x, y, c;
+	Func t;
+	t(x, y, c) = s(x, y, c);
+		return t;*/
+	return aligns(imgs);
 }

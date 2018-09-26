@@ -10,4 +10,6 @@
 Halide::Func merge(Halide::Buffer<uint16_t> imgs, Halide::Func alignment);
 Halide::Func merge(Halide::ImageParam imgs, Halide::Func alignment);
 
+Halide::Func merge(Halide::ImageParam imgs, Halide::ImageParam alignment);
+
 #endif
